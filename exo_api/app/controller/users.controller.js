@@ -1,40 +1,41 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken')
 const { User} = require("../models/db");
+const erreurCall = require("../services/call.services");
+const privateKey =require("../config/private-key")
 
 exports.login = async (req, res) => {
+    if (req.body.email && req.body.password ) {
 
-    try {
+        try {
+            const user = await User.findOne({ where: { email: req.body.email }});
+            if(!user){
+                return res.status(404).json({ message : "Cet email ne correspond à aucun compte"});
+            }
+            const verifPassword = bcrypt.compareSync(req.body.password, user.password)
+            if(!verifPassword){
+                const message = "Le mdp est incorrect";
+                return res.json(401).json({ message });
+            }
 
-        //trouver le user avec le parametre email == req.body.email
-        const user = await User.findOne({ where: { email: req.body.email } });
+            const token = jwt.sign(
+                {userId : user.id},
+                privateKey.privateKey,
+                {expiresIn: '60'}
+            );
 
-        if (!user) {
-            res.status(404);
-            res.json({ "message": "Aucun utilisateur n'existe avec cet email" })
-            return;
+            const message = "Vous vous êtes bien identfié - Merci de récupérer le token pour vos futurs requêtes sur l'API";
+            res.json({
+                message,
+                data : user, token
+            })
+
+        } catch (error) {
+            erreurCall(error, res);
         }
-
-
-        if (req.body.password == user.dataValues.password) {
-        
-            //recuperer le student qui est en relation avec notre user : la methode getStudent() est automatiquement genérée par Sequelize suivant la relation défnie auparavant 
-            let student = await user.getStudent()
-            res.json({user : user,
-                student : student
-            });
-
-        } else {
-            res.status(401);
-            res.json({ "message": "Le mot de passe est erroné" })
-        }
-
-
-
-
-    } catch (e) {
-        res.status(500);
-            res.json({ "message": e })
+    } else {
+        res.status(400).json("Demande de login Annulé. Merci de réessayer");
     }
-   
 }
 
 

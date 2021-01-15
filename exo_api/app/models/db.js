@@ -1,5 +1,5 @@
 //importation du module mysql
-
+const bcrypt = require('bcryptjs');
 const { Sequelize, DataTypes } = require('sequelize');
 const dbConfig = require("../config/db.config");
 const studentModel = require("./students.model")
@@ -26,14 +26,15 @@ const Lesson = lessonModel(sequelize, DataTypes);
 
 const initDb = () => {
   // force : true pour rénitialiser la bdd dans sync ({ force : true })
-  return sequelize.sync()
+  return sequelize.sync({force : true})
   .then(_ => {
-    // listeEtudiants.map (student => {
-    //   Student.create(student);
-    // })
-    // listeUsers.map (user => {
-    //   User.create(user);
-    // })
+    listeEtudiants.map (student => {
+      Student.create(student);
+    })
+    listeUsers.map (user => {
+      user.password = bcrypt.hashSync(user.password, 5);
+      User.create(user);
+    })
     console.log("Connexion à la BDD réussie");
   })
   .catch(error => {
