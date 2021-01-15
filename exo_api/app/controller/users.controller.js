@@ -1,6 +1,4 @@
-let db = require("../models/db");
-let User = db.users;
-
+const { User} = require("../models/db");
 
 exports.login = async (req, res) => {
 

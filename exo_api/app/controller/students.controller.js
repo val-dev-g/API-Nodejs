@@ -1,112 +1,112 @@
-let db = require('../models/db')
-const Student = db.students;
-const Lesson = db.lessons;
-
-let StudentC = require('../models/student');
+// const listeEtudiants = require('../config/test/liste.etudiants');
+const { getAge } = require("../services/students.services")
+const {Student}= require('../models/db');
+const erreurCall = require('../services/call.services');
 
 //importer le service
-const studentsService = require('../services/students.services')
-exports.create = async (req, res) => {
-   if (req.body.first_name && req.body.last_name && req.body.birthdate && req.body.bio && req.body.class_name) {
-      try {
-         let rep = await Student.create(req.body)
-         res.json(rep);
-      } catch (e) {
-         res.status(500)
-         res.json({ "error": e });
-      }
-     } else {
-      res.status(400)
-      res.json({ 'message': 'bad request' });
-   }
-}
-
-exports.getById = async (req, resp) => {
-   try {
-      let result = await Student.findByPk(req.params.id)
-      let age = studentsService.getYears(result.dataValues.birthdate)
-      
-      console.log(result);
-              //importer le service
-              let newRes = new StudentC(result.dataValues.id,  result.dataValues.first_name,result.dataValues.last_name,result.dataValues.birthdate, result.dataValues.bio, result.dataValues.class_name, age)
-              console.log(age)
-         resp.json(newRes);
-   } catch (e) {
-      resp.status(500);
-      resp.json({ error: e });
-   }
-
-  
-}
-
-
-exports.addLesson = async (req, resp) => {
-   try {
-      let student = await Student.findByPk(req.params.id2)
-      let lesson = await Lesson.findByPk(req.params.id1)
-      await lesson.setStudents(student);
-      let lessons = await student.getLessons();
-      resp.json(lessons);
-     
-   } catch (e) {
-      console.log(e);
-      resp.status(500);
-      resp.json({ error: e });
-   }
-
-  
-}
+// const studentsService = require('../services/students.services');
 
 exports.getAll = async (req, res) => {
-    try {
-       let resp = await Student.findAll();
-       
-       console.log(resp);
-
-       let newResult = resp.map((result) => {
-          let age = studentsService.getYears(result.dataValues.birthdate)
-          console.log(age);
-          console.log(result);
-          //importer le service
-          return new StudentC(result.dataValues.id, result.dataValues.first_name, result.dataValues.last_name, result.dataValues.birthdate, result.dataValues.bio, result.dataValues.class_name, age)
-       }); 
-
-        res.json(newResult);
-   } catch (e) {
-      res.json(500);
-      res.json({ error: e });
-   }
-    
-}
-
-exports.update = async (req, res) => {
    try {
-       await Student.update(req.body, {
-         where: {
-            id: req.params.id
-         }
-      });
-        res.json({id:req.params.id,...req.body});
+      let listeEtudiants = await Student.findAll();
+      if(!listeEtudiants.length){
+         const message = "La liste des étuiants est vide";
+         return res.json(message);
+      }
+      
+      //MAJ de la liste des Etudiants avec le calcul de l'âge
+      listeEtudiants = listeEtudiants.map((etudiant) => {
+         etudiant.age = getAge(etudiant.birthdate)
+         return etudiant;
+      }); 
+
+      console.log(listeEtudiants);
+      const message = `La liste a été récupéré. Il y a en tout ${listeEtudiants.length} etudiant(s).`;
+      res.json({message, listeEtudiants});
    } catch (e) {
-      resp.json(500);
-      resp.json({ error: e });
+      erreurCall(e, res);
    }
+}
+
+exports.getById = async (req, res) => {
+   try {
+      let etudiant = await Student.findByPk(req.params.id);
+      if(etudiant === null) {
+         const message = "L'étudiant demandé existe pas, merci d'essayer avec un autre ID";
+         res.status(400).json(message);
+      }
+      etudiant.age = getAge(etudiant.birthdate)
+      const message = "Un étudiant a bien été trouvé.";
+      res.json({ message, etudiant})
+
+      
+   } catch (e) {
+      erreurCall(e, res);
+   }
+}
+
+// exports.create = async (req, res) => {
+//    if (req.body.first_name && req.body.last_name && req.body.birthdate && req.body.bio && req.body.class_name) {
+//       try {
+//          let rep = await Student.create(req.body)
+//          res.json(rep);
+//       } catch (e) {
+//          res.status(500)
+//          res.json({ "error": e });
+//       }
+//      } else {
+//       res.status(400)
+//       res.json({ 'message': 'bad request' });
+//    }
+// }
+
+
+
+
+// exports.addLesson = async (req, resp) => {
+//    try {
+//       let student = await Student.findByPk(req.params.id2)
+//       let lesson = await Lesson.findByPk(req.params.id1)
+//       await lesson.setStudents(student);
+//       let lessons = await student.getLessons();
+//       resp.json(lessons);
+     
+//    } catch (e) {
+//       console.log(e);
+//       resp.status(500);
+//       resp.json({ error: e });
+//    }
+
+  
+// }
+
+// exports.update = async (req, res) => {
+//    try {
+//        await Student.update(req.body, {
+//          where: {
+//             id: req.params.id
+//          }
+//       });
+//         res.json({id:req.params.id,...req.body});
+//    } catch (e) {
+//       resp.json(500);
+//       resp.json({ error: e });
+//    }
  
+// }
 
+// exports.remove = async (req, resp) =>{
+// try {
+//        await Student.destroy({
+//          where: {
+//             id: req.params.id
+//          }
+//        });
+//    res.status(200);
+//         res.json({"message":"element removed"});
+//    } catch (e) {
+//       resp.json(500);
+//       resp.json({ error: e });
+//    }
+// }
 
-}
-
-exports.remove = async (req, resp) =>{
-try {
-       await Student.destroy({
-         where: {
-            id: req.params.id
-         }
-       });
-   res.status(200);
-        res.json({"message":"element removed"});
-   } catch (e) {
-      resp.json(500);
-      resp.json({ error: e });
-   }
-}
