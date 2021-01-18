@@ -45,20 +45,18 @@ exports.getById = async (req, res) => {
    }
 }
 
-// exports.create = async (req, res) => {
-//    if (req.body.first_name && req.body.last_name && req.body.birthdate && req.body.bio && req.body.class_name) {
-//       try {
-//          let rep = await Student.create(req.body)
-//          res.json(rep);
-//       } catch (e) {
-//          res.status(500)
-//          res.json({ "error": e });
-//       }
-//      } else {
-//       res.status(400)
-//       res.json({ 'message': 'bad request' });
-//    }
-// }
+exports.create = async (req, res) => {
+   if (req.body.first_name && req.body.last_name && req.body.birthdate && req.body.bio && req.body.profile_picture) {
+      try {
+         const etudiant = await Student.create(req.body);
+      } catch (e) {
+      erreurCall(e, res)
+      }
+     } else {
+      res.status(400)
+      res.json({ 'message': 'bad request' });
+   }
+}
 
 // exports.addLesson = async (req, resp) => {
 //    try {

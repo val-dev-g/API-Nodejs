@@ -1,9 +1,28 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken')
-const { User} = require("../models/db");
+const { User, Student } = require("../models/db");
 const erreurCall = require("../services/call.services");
 const privateKey =require("../config/private-key")
-const { checkDuplicateEmail } = require("../services/user.services")
+const { checkDuplicateEmail } = require("../services/user.services");
+const studentMethodes = require('./students.controller');
+
+
+exports.createProfil = async (req, res) => {
+    try { 
+        const id = res.locals.id;
+        const user = await User.findByPk(id);
+        const userProfil = await studentMethodes.create(req, res);
+        await user.setStudent(userProfil);
+        const message = "Votre profil etudiant a bien été crée";
+        res.json({ 
+            message,
+            newStudentProfil: userProfil
+        })
+    } catch (error) {
+        erreurCall(error, res);
+    }
+}
+
 
 exports.login = async (req, res, userRegister = null, messageRegister = null ) => {
     if (req.body.email && req.body.password ) {
