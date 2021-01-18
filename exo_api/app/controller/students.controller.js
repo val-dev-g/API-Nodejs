@@ -60,9 +60,6 @@ exports.getById = async (req, res) => {
 //    }
 // }
 
-
-
-
 // exports.addLesson = async (req, resp) => {
 //    try {
 //       let student = await Student.findByPk(req.params.id2)

@@ -70,22 +70,17 @@ exports.register = async (req, res) => {
 }
 
 exports.getInfo = async (req, res) => {
-    const token = req.headers["x-access-token"];
-    if(!token) {
-        console.log("token non fourni");
-        return
+    try {
+        const id = res.locals.id;
+        console.log(id);
+        const user = await User.findByPk(id);
+        console.log(user);
+        const message = "Vos infos ont bien été récupérées.";
+    res.json({ 
+        message,
+        user 
+    });
+    } catch(error) {
+        erreurCall(error, res)
     }
-    console.log(token);
-    jwt.verify(
-        token,
-        privateKey.privateKey,
-        (error, decodedToken) => {
-            if(error) {
-                console.log(error);
-            }
-            console.log(decodedToken);
-        }
-    )
-    console.log("ça fonctionne");
-    return;
-    }
+}
