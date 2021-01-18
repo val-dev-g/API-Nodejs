@@ -7,7 +7,10 @@ module.exports = (sequelize, Sequelize) => {
      },
     email: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: false,
+      unique : {
+        msg : "Cet email est déjà utilisée !"
+      }
     },
     password: {
       type: Sequelize.STRING,
